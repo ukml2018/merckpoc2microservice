@@ -1,0 +1,15 @@
+langchain
+langchain-community
+langchain-huggingface
+langchain-qdrant
+fastembed
+pandas
+openpyxl
+lark
+ibm-generative-ai
+ibm-watson-machine-learning==1.0.327
+matplotlib
+ibm-db==3.2.1
+datetime
+sqlglot
+chromadb
