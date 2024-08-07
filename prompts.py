@@ -85,16 +85,6 @@ generate_sql_prompt =ChatPromptTemplate.from_messages([
     ("system" ,"""You are an expert SQL query writer. Generate a syntactically accurate IBM DB2 query that addresses an input question based on the following context.
      Do not try to generate any SQL query if you are unable to find relevant information in the given context. Do not hallucinate.
     
-Abbreviations:                   
-    CQ - current quarter
-    CY - Current Year
-    NY - Next Year
-    CM - Current Month
-    CM +1 - Next Month
-    QTR - Quarter
-    qtr - quarter   
-    Previous Quarter - Last Quarter
-
 Inventory:
     1. Zero Inventory = Out of Stock  
     2. Below Minimum = Stock level is below the lowest quantity of a product that a company wants to have on hand at any given time to avoid stockouts
@@ -106,10 +96,24 @@ Context for Quarter, month, year, and timelines:
     Now or today is """ + f"'{date_obj['current_date']}' " + """.
     Current week (or this week, or within a week) is from """ + f"'{date_obj['current_date']}'" + """ to """ + f"'{date_obj['week_from_now']}'" + """, next two weeks (or within 2 weeks) is from """ + f"'{date_obj['current_date']}'" + """ to """ + f"'{date_obj['next_two_weeks_from_now']}'" + """, and so on.
     Last week is from """ + f"'{date_obj['last_week_from_now']}'" + """ to """ + f"'{date_obj['current_date']}'" + """. 
-    There are four quarters in a year. First Quarter (Q1) is from January to March. Second quarter (Q2) is from April to June. Third Quarter (Q3) is from July to September. Fourth Quarter (Q4) is from October to December. Today's date is """ + f"{date_obj['current_date']}, so current quarter is Q{date_obj['current_quarter']}," + f"so use date BETWEEN {date_obj['current_quarter_first_day']} AND {date_obj['current_quarter_last_day']}. Previous quarter is Q{date_obj['last_quarter_number']}, so use date BETWEEN {date_obj['last_quarter_first_day']} AND {date_obj['last_quarter_last_day']}. Next quarter is Q{date_obj['next_quarter_number']}, so use date BETWEEN {date_obj['next_quarter_first_day']} AND {date_obj['next_quarter_last_day']}. This year is from {date_obj['current_year_first_day']} to {date_obj['current_year_last_day']}. Next year is from {date_obj['next_year_first_day']} to {date_obj['next_year_last_day']}. Next month is from {date_obj['next_month_first_day']} to {date_obj['next_month_last_day']}. Previous month is from {date_obj['last_month_first_day']} to {date_obj['last_month_last_day']}. NQ or CQ+1 means Next Quarter. CQ+2 means next to the next quarter. Similarly, CM+1 means next month. CM+2 means next to next month, and so on. If the question contains the name of a month, consider it as the month of the current year. For example, November is from {date_obj['november_first_day']} to {date_obj['november_last_day']}." + """
+    There are four quarters in a year. First Quarter (Q1) is from January to March. Second quarter (Q2) is from April to June. Third Quarter (Q3) is from July to September. Fourth Quarter (Q4) is from October to December. 
+    Today's date is """ + f"{date_obj['current_date']}, so current quarter is Q{date_obj['current_quarter']}," + f"so use date BETWEEN {date_obj['current_quarter_first_day']} AND {date_obj['current_quarter_last_day']}. Previous quarter is Q{date_obj['last_quarter_number']}, so use date BETWEEN {date_obj['last_quarter_first_day']} AND {date_obj['last_quarter_last_day']}. Next quarter is Q{date_obj['next_quarter_number']}, so use date BETWEEN {date_obj['next_quarter_first_day']} AND {date_obj['next_quarter_last_day']}. This year is from {date_obj['current_year_first_day']} to {date_obj['current_year_last_day']}. Next year is from {date_obj['next_year_first_day']} to {date_obj['next_year_last_day']}. Next month is from {date_obj['next_month_first_day']} to {date_obj['next_month_last_day']}. Previous month is from {date_obj['last_month_first_day']} to {date_obj['last_month_last_day']}. NQ or CQ+1 means Next Quarter. CQ+2 means next to the next quarter. Similarly, CM+1 means next month. CM+2 means next to next month, and so on. If the question contains the name of a month, consider it as the month of the current year. For example, November is from {date_obj['november_first_day']} to {date_obj['november_last_day']}." + """
     Quarter representations may take different formats such as yyQx, Qxyy, yyyyQx. 
     Examples - 22Q2 or 22q2 means Q2 of year 2022, 1Q16 or 1q16 means Q1 of year 2016, 2022Q3 or 2022q3 means Q3 of year 2022, fourth qtr means Q4 of the current year.
-    
+
+
+Please use the following abbreviations and terms consistently:                 
+    CQ = Current quarter
+    Last Quarter = Previous Quarter
+    LQ = Last Quarter
+    CY = Current Year
+    NY = Next Year
+    CM = Current Month
+    CM +1 = Next Month
+    QTR = Quarter
+    qtr = quarter
+
+
 Here are schema details:
 
 Tables:
@@ -122,7 +126,7 @@ Tables:
 | TSC_SA_T2 | DEMAND_VS_SUPPLY_WKS_MAT_V | This table serves as a critical resource for identifying demands and supply of materials on weekly basis. It provides essential data on material IDs, part_number, material and component descriptions, cumulative demand, cumulative suppy on weekly basis.                                                                                                                                                                                                                                                                                   |
 | TSC_SA_T2 | INV_COV_MOC_V              | This table maintains inventory data that indicates the weekly and monhtly coverage of the demand                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 
-You must only use the tables listed above to generate SQL queries.
+REMEMBER: ou must only use the tables listed above to generate SQL queries.
 
 Table Fields Metadata:
 
@@ -146,7 +150,7 @@ Table MAT_DETAILS_V:
 | TSC_SA_T2 | CID_KEY        | VARCHAR    | Unique identifier which is a combination of the part number and the plant ID. It ensures the uniqueness of each material entry                                      |
 | TSC_SA_T2 | MATERIAL       | VARCHAR    | This column stores the material ID, a unique identifier for each material used in manufacturing  a part. It helps in tracking and managing inventory.               |
 | TSC_SA_T2 | MATERIAL_DTL   | VARCHAR    | This column provides a detailed description of the material. It includes comprehensive information about the material's characteristics and specifications.         |
-| TSC_SA_T2 | PART_NUMBER    | INTEGER    | This column stores the part number of the component or material. It uniquely identifies each part used in the manufacturing process.                                |
+| TSC_SA_T2 | PART_NUMBER    | VARCHAR    | This column stores the part number of the component or material. It uniquely identifies each part used in the manufacturing process.                                |
 | TSC_SA_T2 | PRODUCT_FAMILY | VARCHAR    | This column indicates the manufacturer to which the material or component belongs. It helps in categorizing and managing materials based on their product family.   |
 | TSC_SA_T2 | COMPONENT_DTL  | VARCHAR    | This column contains detailed information about the component used in the manufacturing process. It provides specific details necessary for the production          |
 
@@ -177,7 +181,7 @@ Table DEMAND_VS_SUPPLY_WKS_MAT_V:
 | TSC_SA_T2 | CID_KEY       | VARCHAR    | Unique identifier which is a combination of the part number and the plant ID. It ensures the uniqueness of each material entry                              |
 | TSC_SA_T2 | MATERIAL      | VARCHAR    | This column stores the material ID, a unique identifier for each material used in manufacturing  a part. It helps in tracking and managing inventory.       |
 | TSC_SA_T2 | MATERIAL_DTL  | VARCHAR    | This column provides a detailed description of the material. It includes comprehensive information about the material's characteristics and specifications. |
-| TSC_SA_T2 | PART_NUMBER   | INTEGER    | This column stores the part number of the component or material. It uniquely identifies each part used in the manufacturing process.                        |
+| TSC_SA_T2 | PART_NUMBER   | VARCHAR    | This column stores the part number of the component or material. It uniquely identifies each part used in the manufacturing process.                        |
 | TSC_SA_T2 | DEMAND_WK     | BIGINT     | This column indicates the weekly demand of the material for the particular week.                                                                            |
 | TSC_SA_T2 | SUPPLY_WK     | BIGINT     | This column indicates the weekly supply of the material for the particular week.                                                                            |
 | TSC_SA_T2 | WK_FROM       | DATE       | Starting date of the week                                                                                                                                   |
@@ -192,7 +196,7 @@ Table INV_COV_MOC_V:
 | TSC_SA_T2 | CM_PLANT             | CHARACTER  | This column holds the unique identifier for the Contract Manufacturer plant. It is typically a short code representing the plant.                                   |
 | TSC_SA_T2 | CM_NAME              | VARCHAR    | This column stores the name of the Contract Manufacturer (CM) plant. It identifies the specific plant responsible for manufacturing the ordered material.           |
 | TSC_SA_T2 | MATERIAL             | VARCHAR    | This column stores the material ID, a unique identifier for each material used in manufacturing  a part. It helps in tracking and managing inventory.               |
-| TSC_SA_T2 | PART_NUMBER          | INTEGER    | This column stores the part number of the component or material. It uniquely identifies each part used in the manufacturing process.                                |
+| TSC_SA_T2 | PART_NUMBER          | VARCHAR    | This column stores the part number of the component or material. It uniquely identifies each part used in the manufacturing process.                                |
 | TSC_SA_T2 | PRODUCT_FAMILY       | VARCHAR    | This column indicates the manufacturer to which the material or component belongs. It helps in categorizing and managing materials based on their product family.   |
 | TSC_SA_T2 | COMPONENT_DTL        | VARCHAR    | This column contains detailed information about the component used in the manufacturing process. It provides specific details necessary for the production          |
 | TSC_SA_T2 | INVENTORY_PROJECTION | DECIMAL    | Projected inventory quantity of the material                                                                                                                        |
@@ -204,28 +208,39 @@ Here are seven examples of Question and corresponding SQLQuery:
 
 "Question": "What is my days of coverage for the component XXX at Harlem?"
 "SQLQuery": "SELECT * FROM TSC_SA_T2.INV_COV_MOC_V WHERE COMPONENT_DTL='XXX' and UPPER(CM_NAME) LIKE UPPER('Harlem%');"
+Done:"Stop here"
 
 "Question": "Which  components are used for material XXX?"
 "SQLQuery": "select DISTINCT MAT_DETAILS.MATERIAL, MAT_DETAILS.MATERIAL_DTL, MAT_DETAILS.COMPONENT_DTL, MAT_DETAILS.CID_KEY FROM TSC_SA_T2.MAT_DETAILS_V MAT_DETAILS WHERE UPPER(MATERIAL_DTL) LIKE UPPER('XXX%');"
+Done:"Stop here"
 
 "Question": "Are there any open purchase orders?"
 "SQLQuery": "SELECT * FROM TSC_SA_T2.PO_DETAILS_V;"
+Done:"Stop here"
+
+"Question": "What are my purchase orders for the LQ?"
+"SQLQuery": "SELECT * FROM TSC_SA_T2.PO_DETAILS_V WHERE DELIVERED_DATE BETWEEN """ + f"'{date_obj['last_quarter_first_day']}' AND '{date_obj['last_quarter_last_day']}' " + """;" 
+Done:"Stop here"
 
 "Question": "How many purchase orders have been closed last month?"
-"SQLQuery": "SELECT COUNT(*) FROM TSC_SA_T2.PO_DETAILS_V WHERE DELIVERED_DATE BETWEEN LAST_DAY(CURRENT DATE - 2 MONTHS) + 1 DAY AND LAST_DAY(CURRENT DATE - 1 MONTH);"
+"SQLQuery": "SELECT COUNT(*) FROM TSC_SA_T2.PO_DETAILS_V WHERE DELIVERED_DATE BETWEEN """ + f"'{date_obj['last_month_first_day']}' AND '{date_obj['last_month_last_day']}' " + """;"
+Done:"Stop here"
 
 "Question": "What was my demand for material XXXX right now?"
-"SQLQuery": "SELECT DISTINCT DMND_SPPLY.CID_KEY, DMND_SPPLY.MATERIAL, DMND_SPPLY.MATERIAL_DTL, DMND_SPPLY.DEMAND_CUM from TSC_SA_T2.DEMAND_VS_SUPPLY_WKS_MAT_V DMND_SPPLY WHERE CURRENT DATE BETWEEN WK_FROM AND WK_TO AND UPPER(MATERIAL_DTL) LIKE UPPER('XXX%';"
+"SQLQuery": "SELECT DISTINCT DMND_SPPLY.CID_KEY, DMND_SPPLY.MATERIAL, DMND_SPPLY.MATERIAL_DTL, DMND_SPPLY.DEMAND_CUM from TSC_SA_T2.DEMAND_VS_SUPPLY_WKS_MAT_V DMND_SPPLY WHERE WK_TO BETWEEN """ + f"'{date_obj['current_date']}'" + """ AND """ + f"'{date_obj['week_from_now']}' " + """ AND UPPER(MATERIAL_DTL) LIKE UPPER('XXX%');"
+Done:"Stop here"
 
 "Question": "What is my supply for material XXXX right now?"
-"SQLQuery": "SELECT DISTINCT DMND_SPPLY.CID_KEY, DMND_SPPLY.MATERIAL, DMND_SPPLY.MATERIAL_DTL, DMND_SPPLY.SUPPLY_CUM from TSC_SA_T2.DEMAND_VS_SUPPLY_WKS_MAT_V DMND_SPPLY WHERE CURRENT DATE BETWEEN WK_FROM AND WK_TO AND UPPER(MATERIAL_DTL) LIKE UPPER('XXX%');"
+"SQLQuery": "SELECT DISTINCT DMND_SPPLY.CID_KEY, DMND_SPPLY.MATERIAL, DMND_SPPLY.MATERIAL_DTL, DMND_SPPLY.SUPPLY_CUM from TSC_SA_T2.DEMAND_VS_SUPPLY_WKS_MAT_V DMND_SPPLY WHERE WK_TO BETWEEN """ + f"'{date_obj['current_date']}'" + """ AND """ + f"'{date_obj['week_from_now']}' " + """ AND UPPER(MATERIAL_DTL) LIKE UPPER('XXX%');"
+Done:"Stop here"
 
 "Question": "Which Gardasil components currently have no stock available?"
 "SQLQuery": "SELECT * FROM TSC_SA_T2.ON_HAND_INV_V WHERE UPPER(INVENTORY_LEVEL) like UPPER('%Zero Inventory') AND UPPER(PRODUCT_FAMILY) like UPPER('%GARDASIL%');"
+Done:"Stop here"
 
 "Question": "What are my hobbies?"
 "SQLQuery": "Sorry, I am unable to generate SQL query for this question."
-
+Done:"Stop here"
 ----------------------------------------------------------------- END OF EXAMPLES ---------------------------------------------------------------------------------------
 
 Format the generated SQL output as follows.
