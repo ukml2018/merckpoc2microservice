@@ -1,14 +1,12 @@
-#from library import get_granite_model, get_granite_code_model, connect_to_database, get_nl2_sql_prompt, get_sql_correction_prompt, parse_response_to_sql
-#from langchain_utils import invoke_chain, fix_query, fix_query_by_llm, get_db_result
+from langchain_utils import invoke_chain, fix_query, fix_query_by_llm, get_db_result
+from library import get_granite_model, get_granite_code_model, connect_to_database, get_nl2_sql_prompt, get_sql_correction_prompt, parse_response_to_sql
 import json
 from flask import Flask, jsonify
-from flask_cors import CORS
-from library import get_granite_model, get_granite_code_model, connect_to_database, get_nl2_sql_prompt, get_sql_correction_prompt, parse_response_to_sql
-from langchain_utils import invoke_chain, fix_query, fix_query_by_llm, get_db_result
+#from flask_cors import CORS
 import urllib
 import sys
 app = Flask(__name__)
-CORS(app)
+#CORS(app)
 @app.route('/invokesearch/<user_query>', methods=['GET'])    
 def invoke_search(user_query):
     
@@ -29,14 +27,13 @@ def invoke_search(user_query):
                 }
             else:
                 _RESULT_KEY = True
-                table_json = db_result.to_json(orient='records')
+                table_json = db_result.to_json(orient='records', date_format='iso')
                 _output = {
                     "SQL": _FIXED_QUERY,
                     "TABLEDATA": table_json,
                     "KEY": _RESULT_KEY
                     }
-            #print(json.dumps(_output))
-            print("The Output will be sent to UI")
+            print(json.dumps(_output))
             return jsonify(_output)
     
         except urllib.error.HTTPError as error:
